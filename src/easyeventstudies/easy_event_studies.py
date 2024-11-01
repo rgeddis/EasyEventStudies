@@ -534,8 +534,17 @@ def plot_CAR_over_time(event_study_results,
     # Clear any existing plots
     plt.clf()
     
-    # Set the white theme and LaTeX font
-    sns.set_theme(style="white", rc={"text.usetex": True})
+    # Set the white theme and LaTeX font with larger font sizes
+    plt.rcParams.update({
+        'font.size': 14,
+        'axes.labelsize': 16,
+        'axes.titlesize': 16,
+        'xtick.labelsize': 14,
+        'ytick.labelsize': 14,
+        'legend.fontsize': 14,
+        'text.usetex': True
+    })
+    sns.set_theme(style="white")
 
     # Create the plot
     fig, ax = plt.subplots(figsize=(12, 8))
@@ -564,7 +573,7 @@ def plot_CAR_over_time(event_study_results,
 
     # Set the labels
     ax.set_xlabel('')
-    ax.set_ylabel('Value in %')
+    ax.set_ylabel('Value in Percent')
 
     # Calculate y-axis limits based on data
     all_values = pd.concat([
@@ -580,8 +589,8 @@ def plot_CAR_over_time(event_study_results,
     # Remove the top and right spines
     sns.despine()
 
-    # Show the legend
-    ax.legend()
+    # Show the legend with larger font
+    ax.legend(prop={'size': 14})
 
     # Format date axis to prevent overlapping
     fig.autofmt_xdate()  # Rotate and align the tick labels
