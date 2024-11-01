@@ -24,14 +24,16 @@ results = run_event_study(
 
 plot_CAR_over_time(results)
 ```
-<img src="./images/boing_example.png" width="70%"/>
+<p align="center">
+  <img src="./images/boing_example.png" width="70%"/>
+</p>
 
 The event study shows that the failure of the Boing 737 Max was associated with a drop in the stock price of about 17 Percent in the first 20 days after the event.
 
 
 ## More Detailed Documentation
 
-1. The main function is `run_event_study`. It returns a pandas DataFrame with the results of the event study.
+1. The main function is `run_event_study`. It returns a pandas DataFrame with the results of the event study. Remember to specify the model you want to use to estimate normal returns. 
 
 ```python
 def run_event_study(
@@ -52,6 +54,47 @@ def run_event_study(
   - "market_model": Estimates returns as a function of market returns
   - "constant_model": Assumes constant normal returns
   - "three_factor_model": Uses the Fama-French three-factor model
+
+The models to estimate normal returns are standard in the literature and defined as: 
+
+### 1. Market Model ("market_model")
+The market model assumes a linear relationship between the stock's returns and the market's returns:
+
+$R_{it} = \alpha_i + \beta_i R_{mt} + \epsilon_{it}$
+
+Where:
+- $R_{it}$: Return of stock $i$ at time $t$
+- $R_{mt}$: Return of the market index at time $t$
+- $\alpha_i$: Intercept term for stock $i$
+- $\beta_i$: Slope coefficient (beta) for stock $i$
+- $\epsilon_{it}$: Error term
+
+### 2. Constant Mean Return Model ("constant_model")
+This model assumes that the expected return is constant over time:
+
+$R_{it} = \mu_i + \epsilon_{it}$
+
+Where:
+- $\mu_i$: Average return of stock $i$ over the estimation window
+- $\epsilon_{it}$: Error term
+
+### 3. Fama-French Three-Factor Model ("three_factor_model")
+The three-factor model includes additional factors for size and value:
+
+$R_{it} = \alpha_i + \beta_i R_{mt} + s_i \text{SMB}_t + h_i \text{HML}_t + \epsilon_{it}$
+
+Where:
+- $R_{it}$: Return of stock $i$ at time $t$
+- $R_{mt}$: Return of the market portfolio at time $t$
+- $\text{SMB}_t$: Small Minus Big factor at time $t$ (size effect)
+- $\text{HML}_t$: High Minus Low factor at time $t$ (value effect)
+- $\alpha_i$: Intercept term for stock $i$
+- $\beta_i$, $s_i$, $h_i$: Factor loadings for stock $i$
+- $\epsilon_{it}$: Error term
+
+
+
+
 
 2. The `plot_CAR_over_time` function plots the cumulative abnormal returns over time. It takes the results of the `run_event_study` function as an input and plots the cumulative abnormal returns over time.
 
