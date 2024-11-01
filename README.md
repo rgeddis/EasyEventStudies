@@ -24,7 +24,7 @@ results = run_event_study(
 
 plot_CAR_over_time(results)
 ```
-![Local Image](./images/boing_example.png)
+<img src="./images/boing_example.png" width="70%"/>
 
 The event study shows that the failure of the Boing 737 Max was associated with a drop in the stock price of about 17 Percent in the first 20 days after the event.
 
