@@ -1,0 +1,11 @@
+LICENSE
+README.md
+pyproject.toml
+src/EasyEventStudies.egg-info/PKG-INFO
+src/EasyEventStudies.egg-info/SOURCES.txt
+src/EasyEventStudies.egg-info/dependency_links.txt
+src/EasyEventStudies.egg-info/requires.txt
+src/EasyEventStudies.egg-info/top_level.txt
+src/easyeventstudies/__init__.py
+src/easyeventstudies/easy_event_studies.py
+src/easyeventstudies/test_easy_event_studies.py

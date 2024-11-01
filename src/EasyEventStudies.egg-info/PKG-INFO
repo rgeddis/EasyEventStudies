@@ -1,0 +1,25 @@
+Metadata-Version: 2.1
+Name: EasyEventStudies
+Version: 1.0
+Summary: A package to conduct event studies
+Author-email: Nicolas Roever <nicolas.rovever@wiso.uni-koeln.de>
+Project-URL: Homepage, https://github.com/NicolasRoever/easy_event_studies
+Project-URL: Issues, https://github.com/NicolasRoever/easy_event_studies
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Requires-Python: >=3.8
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Requires-Dist: requests
+Requires-Dist: pandas
+Requires-Dist: numpy
+Requires-Dist: statsmodels
+Requires-Dist: scipy
+Requires-Dist: seaborn
+Requires-Dist: matplotlib
+Requires-Dist: yfinance
+Requires-Dist: ipython
+
+# easy_event_studies
+This repository includes code for my package "EasyEventStudies"

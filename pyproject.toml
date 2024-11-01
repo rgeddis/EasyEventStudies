@@ -1,0 +1,43 @@
+[project]
+name = "EasyEventStudies"
+version = "1.0"
+authors = [
+  { name="Nicolas Roever", email="nicolas.rovever@wiso.uni-koeln.de" },
+]
+description = "A package to conduct event studies"
+readme = "README.md"
+requires-python = ">=3.8"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "requests",
+    "pandas",
+    "numpy",
+    "statsmodels",
+    "scipy",
+    "seaborn",
+    "matplotlib",
+    "yfinance",
+    "ipython"
+]
+
+
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+
+
+
+[project.urls]
+Homepage = "https://github.com/NicolasRoever/easy_event_studies"
+Issues = "https://github.com/NicolasRoever/easy_event_studies"
+
+
+[tool.hatch.build.targets.wheel]
+packages = ["easyeventstudies"]
+
