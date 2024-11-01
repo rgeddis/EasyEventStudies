@@ -1,6 +1,7 @@
 # EasyEventStudies
 
-This package makes it easy to run event studies on financial assets. In contrast to other packages, it is easy to use, correct and allows for three different models of normal returns estimation. All calculations are based on the standard reference in the literature: *The Econometrics of Financial Markets; John Y. Campbell, Andrew W. Lo and Craig MacKinlay*
+This package makes it easy to run event studies on financial assets. In contrast to other packages, it is easy to use, correct and allows for three different models of normal returns estimation. All calculations are based on the standard reference in the literature: *The Econometrics of Financial Markets; John Y. Campbell, Andrew W. Lo and Craig MacKinlay (1998)*
+
 ## Quick Start Guide
 
 Install the package using `pip`:
@@ -25,7 +26,7 @@ results = run_event_study(
 plot_CAR_over_time(results)
 ```
 <p align="center">
-  <img src="./images/boing_example.png" width="70%"/>
+  <img src="https://github.com/NicolasRoever/EasyEventStudies/blob/2c1460c0b25ac81d316e4c9cbd2f0b242a20bbd1/images/boing_example.png" width="70%"/>
 </p>
 
 The event study shows that the failure of the Boing 737 Max was associated with a drop in the stock price of about 17 Percent in the first 20 days after the event.
