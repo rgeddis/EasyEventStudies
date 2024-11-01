@@ -91,7 +91,7 @@ def clean_stock_returns(df):
     df = df.reset_index(drop=True)
     
     # Calculate the daily return
-    df['Daily_Return'] = df['Adj Close'].pct_change()
+    df['Daily_Return'] = df['Adj Close'].pct_change() * 100
     
     return df
 
@@ -120,6 +120,15 @@ def create_X_matrix(fama_french_data: pd.DataFrame, estimation_window: Tuple[int
     if mode == "market_model":
         # Include an intercept column (1s) and the 'Mkt' column
         X_matrix = np.column_stack((np.ones(len(estimation_data)), estimation_data['Mkt'].values))
+
+    elif mode == 'three_factor_model':
+        # Include an intercept column (1s) and the 'Mkt', 'SMB', and 'HML' columns
+        X_matrix = np.column_stack((np.ones(len(estimation_data)), estimation_data['Mkt'].values, estimation_data['SMB'].values, estimation_data['HML'].values))
+
+    elif mode == "constant_model":
+        # Include an intercept column (1s)
+        X_matrix = np.ones((len(estimation_data), 1))
+
     else:
         raise ValueError(f"Unsupported mode: {mode}")
 
@@ -151,7 +160,7 @@ def create_Y_matrix(stock_data: pd.DataFrame, event_date: datetime, event_window
     return Y_matrix
 
 
-def create_X_star_matrix(event_date: datetime, event_window: Tuple[int, int], factor_data: pd.DataFrame) -> np.ndarray:
+def create_X_star_matrix(event_date: datetime, event_window: Tuple[int, int], factor_data: pd.DataFrame, model_type: str = "market_model") -> np.ndarray:
     """
     Creates an X* matrix based on the specified event window, including an intercept and the 'Mkt' column.
 
@@ -171,7 +180,17 @@ def create_X_star_matrix(event_date: datetime, event_window: Tuple[int, int], fa
     event_data = factor_data[(factor_data['Date'] >= start_date) & (factor_data['Date'] <= end_date)]
 
     # Construct the X* matrix with an intercept (1s) and the 'Mkt' column
-    X_star_matrix = np.column_stack((np.ones(len(event_data)), event_data['Mkt'].values))
+    if model_type == "market_model":
+        X_star_matrix = np.column_stack((np.ones(len(event_data)), event_data['Mkt'].values))
+
+    elif model_type == "three_factor_model":
+        X_star_matrix = np.column_stack((np.ones(len(event_data)), event_data['Mkt'].values, event_data['SMB'].values, event_data['HML'].values))
+
+    elif model_type == "constant_model":
+        X_star_matrix =  X_star_matrix = np.ones(len(event_data)).reshape(-1, 1) 
+
+    else:
+        raise ValueError(f"Unsupported model type: {model_type}")
 
     return X_star_matrix
 
@@ -203,10 +222,20 @@ def create_Y_star_matrix(event_date: datetime, event_window: Tuple[int, int], st
 def estimate_return_model(X: np.ndarray, Y: np.ndarray, model_type: str = "market_model"):
     """As output, we need the model and the estimation for residual variance."""
 
+    model = sm.OLS(Y, X).fit()
+    residuals = model.resid
+
     if model_type == "market_model":
-        model = sm.OLS(Y, X).fit()
-        residuals = model.resid
+
         residual_variance_estimate = np.dot(residuals, residuals) / (len(Y) - 2)
+
+    elif model_type == "three_factor_model":
+
+        residual_variance_estimate = np.dot(residuals, residuals) / (len(Y) - 4)
+
+    elif model_type == "constant_model":
+
+        residual_variance_estimate = np.dot(residuals, residuals) / (len(Y) - 1)
 
     else:
         raise ValueError(f"Unsupported model type: {model_type}")
@@ -226,6 +255,7 @@ def estimate_normal_abnormal_returns(model: np.ndarray, X_star: np.ndarray, Y_st
     Returns:
     - Tuple[np.ndarray, np.ndarray]: The normal returns and abnormal returns (residuals).
     """
+
     # Use the trained model to predict normal returns for X_star
     normal_returns = model.predict(X_star)
 
@@ -344,7 +374,7 @@ def create_event_study_output(
     # Calculate degrees of freedom
     if model_type == "market_model":
         degrees_of_freedom = len(abnormal_returns) - 2  # Adjust based on model parameters
-    else:
+    elif model_type == "constant_model":
         degrees_of_freedom = len(abnormal_returns) - 1
     if degrees_of_freedom <= 0:
         raise ValueError("Degrees of freedom must be positive.")
@@ -359,7 +389,6 @@ def create_event_study_output(
     stock_data_filtered['CI_upper_bound_95'] = stock_data_filtered['CAR'] + t_critical * std_error
     stock_data_filtered['CI_lower_bound_95'] = stock_data_filtered['CAR'] - t_critical * std_error
 
-    breakpoint()
     # Select and order columns
     result_columns = [
         'Date', 'Relative_Day', 'Daily_Return', 'Normal_Return',
@@ -382,7 +411,7 @@ def run_event_study(
     event_date: datetime,
     estimation_window: Tuple[int, int] = (-120, -11),
     event_window: Tuple[int, int] = (-10, 10),
-    historical_days: int = 5,
+    historical_days: int = 10,
     model_type: str = "market_model"
 ) -> pd.DataFrame:
     """
@@ -404,12 +433,17 @@ def run_event_study(
         event_date = pd.to_datetime(event_date)
     
     # Calculate the start and end dates for data fetching
-    start_date = event_date + pd.Timedelta(days=min(estimation_window[0], event_window[0]) - 5)
-    end_date = event_date + pd.Timedelta(days=max(estimation_window[1], event_window[1]) + 5)
+    start_date = event_date + pd.Timedelta(days=min(estimation_window[0], event_window[0]) - historical_days)
+    end_date = event_date + pd.Timedelta(days=max(estimation_window[1], event_window[1]) + historical_days)
     
     # Fetch stock data using yfinance
     stock = yf.download(ticker, start=start_date, end=end_date)
     stock_data = clean_stock_returns(stock)
+    
+    # Check if the event date exists in the data (i.e., if it's a trading day)
+    event_day_exists = any((stock_data['Date'].dt.date == event_date.date()))
+    if not event_day_exists:
+        raise ValueError(f"No market data available for {event_date.date()}. Please specify a day when the market is open to run an event study.")
     
     # Get and clean Fama-French factors
     ff_raw = get_fama_french_daily_factors()
@@ -433,7 +467,8 @@ def run_event_study(
     X_star = create_X_star_matrix(
         event_date=event_date,
         event_window=event_window,
-        factor_data=ff_data
+        factor_data=ff_data, 
+        model_type=model_type
     )
     
     Y_star = create_Y_star_matrix(
@@ -480,12 +515,19 @@ def run_event_study(
     return output
 
 
-def plot_CAR_over_time(event_study_results, event_date, plot_colors = ["#3c5488", "#e64b35", "#4dbbd5", "#00a087", "#f39b7f", "#000000"]):
+def plot_CAR_over_time(event_study_results,
+                       days_before_event: int = 10,
+                       days_after_event: int = 10,
+                       plot_colors = ["#3c5488", "#e64b35", "#4dbbd5", "#00a087", "#f39b7f", "#000000"]):
     """
     Plot Cumulative Abnormal Returns (CAR) over time with confidence intervals using Seaborn.
     """
-    # Ensure event_date is a datetime object
-    event_date = pd.to_datetime(event_date)
+    # Infer event date from the data (where Relative_Day = 0)
+    event_date = event_study_results[event_study_results['Relative_Day'] == 0]['Date'].iloc[0]
+
+    # Filter the DataFrame for the specified window
+    event_study_results = event_study_results[event_study_results['Relative_Day'] <= days_before_event]
+    event_study_results = event_study_results[event_study_results['Relative_Day'] >= -days_after_event]
     
     # Clear any existing plots
     plt.clf()
@@ -512,25 +554,26 @@ def plot_CAR_over_time(event_study_results, event_date, plot_colors = ["#3c5488"
                    event_study_results['CI_upper_bound_95'], 
                    color='grey', alpha=0.1)
 
-    # Add the event date line
-    ax.axvline(x=event_date, color='grey', linestyle='--')
+    # Add the event date line and label
+    ax.axvline(x=event_date, color='grey', linestyle='-', alpha=0.5)
 
     # Add a grey dotted line at x=0
     ax.axhline(0, color='grey', linestyle='-', alpha=0.5)
 
     # Set the labels
     ax.set_xlabel('')
-    ax.set_ylabel('Return')
+    ax.set_ylabel('Value in %')
 
     # Calculate y-axis limits based on data
     all_values = pd.concat([
         event_study_results['Normal_Return'],
         event_study_results['Abnormal_Return'],
-        event_study_results['CAR']
+        event_study_results['CAR'], 
+        event_study_results['Daily_Return'],
     ])
     max_val = all_values.max()
     min_val = all_values.min()
-    ax.set_ylim(min_val * 3, max_val * 3)
+    ax.set_ylim(min_val * 1.1, max_val * 1.1)
 
     # Remove the top and right spines
     sns.despine()
