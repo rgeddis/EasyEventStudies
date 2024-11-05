@@ -1,6 +1,6 @@
 [project]
 name = "EasyEventStudies"
-version = "1.9"
+version = "1.10"
 authors = [
   { name="Nicolas Roever", email="nicolas.rovever@wiso.uni-koeln.de" },
 ]
