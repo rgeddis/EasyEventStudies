@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: EasyEventStudies
-Version: 1.1
+Version: 1.8
 Summary: A package to conduct event studies
 Author-email: Nicolas Roever <nicolas.rovever@wiso.uni-koeln.de>
 Project-URL: Homepage, https://github.com/NicolasRoever/easy_event_studies
@@ -49,7 +49,7 @@ results = run_event_study(
 plot_CAR_over_time(results)
 ```
 <p align="center">
-  <img src="./images/boing_example.png" width="70%"/>
+  <img src="https://github.com/NicolasRoever/EasyEventStudies/blob/2c1460c0b25ac81d316e4c9cbd2f0b242a20bbd1/images/boing_example.png" width="70%"/>
 </p>
 
 The event study shows that the failure of the Boing 737 Max was associated with a drop in the stock price of about 17 Percent in the first 20 days after the event.
@@ -141,3 +141,13 @@ If you use this package in your work, please cite it as:
 Roever, Nicolas (2024). EasyEventStudies: A Python Package for Event Studies. https://github.com/NicolasRoever/EasyEventStudies
 
 ```
+
+# Notes for Developer
+
+Publishing the package: 
+1. Delete the dist folder
+2. Update the version number in pyproject.toml
+3. Run `python -m build`
+4. Run `python -m twine upload dist/*`
+
+

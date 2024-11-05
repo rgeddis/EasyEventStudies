@@ -1,6 +1,6 @@
 [project]
 name = "EasyEventStudies"
-version = "1.1"
+version = "1.8"
 authors = [
   { name="Nicolas Roever", email="nicolas.rovever@wiso.uni-koeln.de" },
 ]
@@ -39,5 +39,5 @@ Issues = "https://github.com/NicolasRoever/easy_event_studies"
 
 
 [tool.hatch.build.targets.wheel]
-packages = ["easyeventstudies"]
+packages = ["EasyEventStudies"]
 

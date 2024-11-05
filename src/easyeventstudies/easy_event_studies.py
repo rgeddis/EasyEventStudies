@@ -44,15 +44,16 @@ def get_fama_french_daily_factors():
 
 
 def clean_fama_french_factor_data(raw_data):
-    """This function cleans the Fama French factor data set obtained from the Kenneth French data library."""
+    """This function cleans the Fama French factor data set obtained from the Kenneth French data library.
+    All numbers are in net returns."""
 
     cleaned_data = pd.DataFrame()
     cleaned_data['Date'] = raw_data['Unnamed: 0'].apply(lambda x: datetime.strptime(str(x), '%Y%m%d'))
     cleaned_data['Date'] = cleaned_data['Date'].dt.tz_localize(None)
-    cleaned_data['Mkt-RF'] = raw_data['Mkt-RF'].astype(float)
-    cleaned_data['RF'] = raw_data['RF'].astype(float)
-    cleaned_data['SMB'] = raw_data['SMB'].astype(float)
-    cleaned_data['HML'] = raw_data['HML'].astype(float)
+    cleaned_data['Mkt-RF'] = raw_data['Mkt-RF'].astype(float) / 100
+    cleaned_data['RF'] = raw_data['RF'].astype(float) / 100
+    cleaned_data['SMB'] = raw_data['SMB'].astype(float) / 100
+    cleaned_data['HML'] = raw_data['HML'].astype(float) / 100
     cleaned_data["Mkt"] = cleaned_data["Mkt-RF"] + cleaned_data["RF"]
 
     return cleaned_data
@@ -91,7 +92,7 @@ def clean_stock_returns(df):
     df = df.reset_index(drop=True)
     
     # Calculate the daily return
-    df['Daily_Return'] = df['Adj Close'].pct_change() * 100
+    df['Daily_Return'] = df['Adj Close'].pct_change() 
     
     return df
 
@@ -519,7 +520,7 @@ def run_event_study(
 
 def plot_CAR_over_time(event_study_results,
                        days_before_event: int = 10,
-                       days_after_event: int = 10,
+                       days_after_event: int = 20,
                        plot_colors = ["#3c5488", "#e64b35", "#4dbbd5", "#00a087", "#f39b7f", "#000000"]):
     """
     Plot Cumulative Abnormal Returns (CAR) over time with confidence intervals using Seaborn.
@@ -528,8 +529,8 @@ def plot_CAR_over_time(event_study_results,
     event_date = event_study_results[event_study_results['Relative_Day'] == 0]['Date'].iloc[0]
 
     # Filter the DataFrame for the specified window
-    event_study_results = event_study_results[event_study_results['Relative_Day'] <= days_before_event]
-    event_study_results = event_study_results[event_study_results['Relative_Day'] >= -days_after_event]
+    event_study_results = event_study_results[event_study_results['Relative_Day'] >= -days_before_event]
+    event_study_results = event_study_results[event_study_results['Relative_Day'] <= days_after_event]
     
     # Clear any existing plots
     plt.clf()
@@ -542,7 +543,6 @@ def plot_CAR_over_time(event_study_results,
         'xtick.labelsize': 14,
         'ytick.labelsize': 14,
         'legend.fontsize': 14,
-        'text.usetex': True
     })
     sns.set_theme(style="white")
 
@@ -573,7 +573,7 @@ def plot_CAR_over_time(event_study_results,
 
     # Set the labels
     ax.set_xlabel('')
-    ax.set_ylabel('Value in Percent')
+    ax.set_ylabel('Value')
 
     # Calculate y-axis limits based on data
     all_values = pd.concat([
