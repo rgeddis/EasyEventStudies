@@ -3,7 +3,7 @@
 This package makes it easy to run event studies on financial assets. In contrast to other packages, it is easy to use, correct and allows for three different models of normal returns estimation. All calculations are based on the standard reference in the literature: *The Econometrics of Financial Markets; John Y. Campbell, Andrew W. Lo and Craig MacKinlay (1998)*
 
 <p align="center">
-🎥 **[Watch the Video Tutorial](https://www.youtube.com/watch?v=H0Ga8uutQgY)**
+<a href="https://www.youtube.com/watch?v=H0Ga8uutQgY">🎥 Watch the Video Tutorial</a>
 </p>
 
 <p align="center">
