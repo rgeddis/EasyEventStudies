@@ -2,9 +2,11 @@
 
 This package makes it easy to run event studies on financial assets. In contrast to other packages, it is easy to use, correct and allows for three different models of normal returns estimation. All calculations are based on the standard reference in the literature: *The Econometrics of Financial Markets; John Y. Campbell, Andrew W. Lo and Craig MacKinlay (1998)*
 
+<p align="center">
+
 🎥 **[Watch the Video Tutorial](https://www.youtube.com/watch?v=H0Ga8uutQgY)**
 
-<p align="center">
+
   <a href="https://www.youtube.com/watch?v=H0Ga8uutQgY">
     <img src="https://img.youtube.com/vi/H0Ga8uutQgY/maxresdefault.jpg" alt="Video Tutorial" width="600"/>
   </a>
@@ -19,7 +21,13 @@ This package makes it easy to run event studies on financial assets. In contrast
 Install the package using `pip`:
 
 ```bash
-pip install pip install EasyEventStudies==1.0
+pip install EasyEventStudies==
+```
+
+Then import the package:
+
+```python
+from EasyEventStudies import *
 ```
 
 The `run_event_study` function runs a complete event study analysis for a financial asset and an event date. The package takes financial data from Yahoo Finance, so search for the ticker symbol of the asset you are interested on their website [here](https://finance.yahoo.com/). 
