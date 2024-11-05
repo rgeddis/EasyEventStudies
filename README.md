@@ -13,7 +13,7 @@ This package makes it easy to run event studies on financial assets. In contrast
 </p>
 
 <p align="center">
-Get the detailed documentation [here](https://github.com/NicolasRoever/EasyEventStudies/blob/c79048de45a81fe08e875229fc39fb2164120126/Documentation_EasyEventStudies.pdf).
+<a href="https://github.com/NicolasRoever/EasyEventStudies/blob/c79048de45a81fe08e875229fc39fb2164120126/Documentation_EasyEventStudies.pdf">Get the detailed documentation here</a>
 </p>
 
 
