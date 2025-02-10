@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: EasyEventStudies
-Version: 1.10
+Version: 1.11
 Summary: A package to conduct event studies
 Author-email: Nicolas Roever <nicolas.rovever@wiso.uni-koeln.de>
 Project-URL: Homepage, https://github.com/NicolasRoever/easy_event_studies
@@ -33,6 +33,10 @@ This package makes it easy to run event studies on financial assets. In contrast
   <a href="https://www.youtube.com/watch?v=H0Ga8uutQgY">
     <img src="https://img.youtube.com/vi/H0Ga8uutQgY/maxresdefault.jpg" alt="Video Tutorial" width="600"/>
   </a>
+</p>
+
+<p align="center">
+<a href="https://github.com/NicolasRoever/EasyEventStudies/blob/c79048de45a81fe08e875229fc39fb2164120126/Documentation_EasyEventStudies.pdf">Get the detailed documentation here</a>
 </p>
 
 

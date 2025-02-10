@@ -92,7 +92,7 @@ def clean_stock_returns(df):
     df = df.reset_index(drop=True)
     
     # Calculate the daily return
-    df['Daily_Return'] = df['Adj Close'].pct_change() 
+    df['Daily_Return'] = df['Close'].pct_change() 
     
     return df
 
