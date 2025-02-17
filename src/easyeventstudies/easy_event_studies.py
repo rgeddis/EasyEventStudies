@@ -19,11 +19,11 @@ import matplotlib.dates as mdates
 def get_fama_french_daily_factors():
     """Downloads the Fama French daily factors from the Kenneth French data library and returns a pandas DataFrame."""
     url = 'https://mba.tuck.dartmouth.edu/pages/faculty/ken.french/ftp/F-F_Research_Data_Factors_daily_CSV.zip'
-    
+
     try:
         response = requests.get(url)
         response.raise_for_status()  # raises an HTTPError if the HTTP request returned an unsuccessful status code
-        
+
         with zipfile.ZipFile(io.BytesIO(response.content)) as z:
             with z.open('F-F_Research_Data_Factors_daily.CSV') as f:
                 df = pd.read_csv(f, skiprows=4, skipfooter=2, engine='python')  # Skip header and footer
@@ -55,7 +55,6 @@ def clean_fama_french_factor_data(raw_data):
     cleaned_data['SMB'] = raw_data['SMB'].astype(float) / 100
     cleaned_data['HML'] = raw_data['HML'].astype(float) / 100
     cleaned_data["Mkt"] = cleaned_data["Mkt-RF"] + cleaned_data["RF"]
-
     return cleaned_data
 
 def clean_stock_returns(df):
@@ -76,24 +75,24 @@ def clean_stock_returns(df):
     """
     # Store the ticker name
     ticker = df.columns.get_level_values('Ticker')[0]
-    
+
     # Get the first level column names and remove the 'Price' level entirely
     df.columns = [col[0] for col in df.columns]
-    
+
     # Add Ticker column
     df['Ticker'] = ticker
-    
+
     # Ensure the 'Date' column is datetime
     df.index = pd.to_datetime(df.index)
     df['Date'] = df.index
     df['Date'] = df['Date'].dt.tz_localize(None)
-    
+
     # Reset the index
     df = df.reset_index(drop=True)
-    
+
     # Calculate the daily return
-    df['Daily_Return'] = df['Close'].pct_change() 
-    
+    df['Daily_Return'] = df['Close'].pct_change()
+
     return df
 
 
@@ -188,7 +187,7 @@ def create_X_star_matrix(event_date: datetime, event_window: Tuple[int, int], fa
         X_star_matrix = np.column_stack((np.ones(len(event_data)), event_data['Mkt'].values, event_data['SMB'].values, event_data['HML'].values))
 
     elif model_type == "constant_model":
-        X_star_matrix =  X_star_matrix = np.ones(len(event_data)).reshape(-1, 1) 
+        X_star_matrix =  X_star_matrix = np.ones(len(event_data)).reshape(-1, 1)
 
     else:
         raise ValueError(f"Unsupported model type: {model_type}")
@@ -404,7 +403,7 @@ def create_event_study_output(
 
     return stock_data_filtered[result_columns]
 
-    
+
 
 
 
@@ -415,11 +414,11 @@ def run_event_study(
     estimation_window: Tuple[int, int] = (-120, -11),
     event_window: Tuple[int, int] = (-10, 10),
     historical_days: int = 10,
-    model_type: str = "market_model"
+    model_type: str = "market_model",
 ) -> pd.DataFrame:
     """
     Runs a complete event study analysis for a given ticker and event date.
-    
+
     Parameters:
     - ticker: Stock ticker symbol (e.g., 'AAPL' for Apple Inc.)
     - event_date: The date of the event
@@ -427,31 +426,33 @@ def run_event_study(
     - event_window: Tuple defining the event window relative to event date (default: -10 to +10 days)
     - historical_days: Number of days before event window to include in output (default: 5)
     - model_type: Type of model to use for normal returns estimation (default: "market_model")
-    
+
     Returns:
     - pd.DataFrame containing the event study results
     """
     # Convert string date to datetime if necessary
     if isinstance(event_date, str):
         event_date = pd.to_datetime(event_date)
-    
+
     # Calculate the start and end dates for data fetching
     start_date = event_date + pd.Timedelta(days=min(estimation_window[0], event_window[0]) - historical_days)
     end_date = event_date + pd.Timedelta(days=max(estimation_window[1], event_window[1]) + historical_days)
-    
+
     # Fetch stock data using yfinance
     stock = yf.download(ticker, start=start_date, end=end_date)
     stock_data = clean_stock_returns(stock)
-    
+
     # Check if the event date exists in the data (i.e., if it's a trading day)
     event_day_exists = any((stock_data['Date'].dt.date == event_date.date()))
     if not event_day_exists:
         raise ValueError(f"No market data available for {event_date.date()}. Please specify a day when the market is open to run an event study.")
-    
+
     # Get and clean Fama-French factors
     ff_raw = get_fama_french_daily_factors()
     ff_data = clean_fama_french_factor_data(ff_raw)
-    
+    stock_data = stock_data[stock_data['Date'].isin(list(ff_data['Date']))]
+    ff_data = ff_data[ff_data['Date'].isin(list(stock_data['Date']))]
+
     # Create matrices for estimation
     X = create_X_matrix(
         fama_french_data=ff_data,
@@ -459,41 +460,41 @@ def run_event_study(
         event_date=event_date,
         mode=model_type
     )
-    
+
     Y = create_Y_matrix(
         stock_data=stock_data,
         event_date=event_date,
         event_window=estimation_window
     )
-    
+
     # Create matrices for prediction
     X_star = create_X_star_matrix(
         event_date=event_date,
         event_window=event_window,
-        factor_data=ff_data, 
+        factor_data=ff_data,
         model_type=model_type
     )
-    
+
     Y_star = create_Y_star_matrix(
         event_date=event_date,
         event_window=event_window,
         stock_data=stock_data
     )
-    
+
     # Estimate model and get residual variance
     model, residual_variance = estimate_return_model(
         X=X,
         Y=Y,
         model_type=model_type
     )
-    
+
     # Calculate normal and abnormal returns
     normal_returns, abnormal_returns = estimate_normal_abnormal_returns(
         model=model,
         X_star=X_star,
         Y_star=Y_star
     )
-    
+
     # Calculate variance of abnormal returns
     variance_abnormal_returns = estimate_variance_of_abnormal_returns(
         X=X,
@@ -502,7 +503,7 @@ def run_event_study(
         Y_star=Y_star,
         residual_variance_estimation=residual_variance
     )
-    
+
     # Create final output
     output = create_event_study_output(
         event_date=event_date,
@@ -514,7 +515,7 @@ def run_event_study(
         event_window=event_window,
         historical_days=historical_days
     )
-    
+
     return output
 
 
@@ -531,10 +532,10 @@ def plot_CAR_over_time(event_study_results,
     # Filter the DataFrame for the specified window
     event_study_results = event_study_results[event_study_results['Relative_Day'] >= -days_before_event]
     event_study_results = event_study_results[event_study_results['Relative_Day'] <= days_after_event]
-    
+
     # Clear any existing plots
     plt.clf()
-    
+
     # Set the white theme and LaTeX font with larger font sizes
     plt.rcParams.update({
         'font.size': 14,
@@ -550,19 +551,19 @@ def plot_CAR_over_time(event_study_results,
     fig, ax = plt.subplots(figsize=(12, 8))
 
     # Plot the data using plt instead of sns
-    ax.plot(event_study_results['Date'], event_study_results['Daily_Return'], 
+    ax.plot(event_study_results['Date'], event_study_results['Daily_Return'],
             label='Observed Return', color=plot_colors[5], linestyle=':')
-    ax.plot(event_study_results['Date'], event_study_results['Normal_Return'], 
+    ax.plot(event_study_results['Date'], event_study_results['Normal_Return'],
             label='Normal Return', color=plot_colors[0], linestyle='--')
-    ax.plot(event_study_results['Date'], event_study_results['Abnormal_Return'], 
+    ax.plot(event_study_results['Date'], event_study_results['Abnormal_Return'],
             label='Abnormal Return', color=plot_colors[3])
-    ax.plot(event_study_results['Date'], event_study_results['CAR'], 
+    ax.plot(event_study_results['Date'], event_study_results['CAR'],
             label='Cumulative Abnormal Return', color=plot_colors[2])
 
     # Add confidence intervals
-    ax.fill_between(event_study_results['Date'], 
-                   event_study_results['CI_lower_bound_95'], 
-                   event_study_results['CI_upper_bound_95'], 
+    ax.fill_between(event_study_results['Date'],
+                   event_study_results['CI_lower_bound_95'],
+                   event_study_results['CI_upper_bound_95'],
                    color='grey', alpha=0.1)
 
     # Add the event date line and label
@@ -579,7 +580,7 @@ def plot_CAR_over_time(event_study_results,
     all_values = pd.concat([
         event_study_results['Normal_Return'],
         event_study_results['Abnormal_Return'],
-        event_study_results['CAR'], 
+        event_study_results['CAR'],
         event_study_results['Daily_Return'],
     ])
     max_val = all_values.max()
@@ -594,11 +595,11 @@ def plot_CAR_over_time(event_study_results,
 
     # Format date axis to prevent overlapping
     fig.autofmt_xdate()  # Rotate and align the tick labels
-    
+
     # Additional date formatting options
     ax.xaxis.set_major_locator(mdates.AutoDateLocator())
     ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d'))
-    
+
     # Adjust layout to prevent label cutoff
     plt.tight_layout()
 
